@@ -67,9 +67,9 @@ function HandleTick(event){
 }
 
 function UpdatePlayer(delta){
-
+  delta = Math.max(delta, 100)
   var playerPosition = new Victor(player.x, player.y);
-  console.log("Player Start: " + GetVectorRelativeToLocal(playerPosition));
+  //console.log("Player Start: " + GetVectorRelativeToLocal(playerPosition));
 
   var initalPoint = GetVectorRelativeToLocal(new Victor(player.x, player.y));
   var finalPoint = GetVectorRelativeToLocal(GetNearestPoint(new Victor(stage.mouseX, stage.mouseY)));
@@ -94,23 +94,20 @@ function UpdatePlayer(delta){
   //var angle = Math.cos(dot/mag);
   var px = stage.mouseX;
   var py = stage.mouseY;
-  console.log("angle is " + angle);
+  //console.log("angle is " + angle);
   if(Math.abs(angle) > .01){
 
     //Get the actual arc length we're going to move
     var totalArcLength = angle * fieldRadius;
 
-    console.log("totalArcLength is " + totalArcLength);
+    //console.log("totalArcLength is " + totalArcLength);
     var arcLength = Math.min(totalArcLength, velocity);
     var deltaArcLength = arcLength * delta/1000;
-    console.log(deltaArcLength);
+    //console.log(deltaArcLength);
     //Now calculate the angle at that point
     var angleToMove = deltaArcLength/fieldRadius;
 
     var cross = initalPoint.cross(finalPoint);
-    if(cross < 0 ){
-      angleToMove *= -1;
-    }
     console.log("angle to move " + 180/Math.PI * angleToMove);
     //totalArcLine.graphics.clear();
     //totalArcLine.graphics.arcTo(nearestVector.x, nearestVector.y, newPlayerPos.x, newPlayerPos.y, fieldRadius);
@@ -127,17 +124,16 @@ function UpdatePlayer(delta){
     finalPointAngle = GetAngle(zeroDegreeVector,finalPoint);
     actualAngle = initalPointAngle + angleToMove;
 
-
-
+    console.log("Actual angle " + angleToMove * 180 / Math.PI);
+    //console.log("Intial angle " + initalPointAngle * 180 / Math.PI);
+    //console.log("Final angle " + finalPointAngle * 180 / Math.PI);
     if(cross > 0 ){
       totalArcLine.graphics.arc(center.x, center.y,fieldRadius, initalPointAngle/* * Math.PI*/, finalPointAngle /**Math.PI*/ , false).endFill();
       actualArcLine.graphics.arc(center.x, center.y,fieldRadius, initalPointAngle/* * Math.PI*/, actualAngle /**Math.PI*/ , false).endFill();
     } else {
-      finalPointAngle *= -1;
       totalArcLine.graphics.arc(center.x, center.y,fieldRadius,  initalPointAngle /** Math.PI*/, finalPointAngle /**Math.PI*/, true).endFill();
       actualArcLine.graphics.arc(center.x, center.y,fieldRadius, initalPointAngle/* * Math.PI*/, actualAngle /**Math.PI*/ , true).endFill();
     }
-    //totalArcLine.graphics.arc(center.x, center.y,fieldRadius, initalPointAngle, finalPointAngle  , false).endFill();
 
     //console.log(initalPointAngle * 180/Math.PI);
     //console.log(finalPointAngle* 180/Math.PI);
@@ -148,11 +144,11 @@ function UpdatePlayer(delta){
     //var pY = fieldRadius * Math.sin(angleToMove);
     var pX = fieldRadius * Math.cos(actualAngle);
     var pY = fieldRadius * Math.sin(actualAngle);
-    console.log("new player local ps is (" +pX + ", " + pY + ")");
+    //console.log("new player local ps is (" +pX + ", " + pY + ")");
 
     var newPlayerPos = GetVectorRelativeToGlobal(new Victor(pX, pY));
 
-    console.log("PlayerPosEndL " + newPlayerPos);
+    //console.log("PlayerPosEndL " + newPlayerPos);
 
     player.x = newPlayerPos.x;
     player.y = newPlayerPos.y;
@@ -160,8 +156,6 @@ function UpdatePlayer(delta){
   }
 
   stage.update();
-  //console.log("length between Pi(" + initalPoint + ") and Pf(" + finalPoint + ") is " + totalArcLength  );
-  //sleepFor(1000);
 }
 
 
@@ -206,9 +200,13 @@ function GetNearestPoint(p){
 function GetAngle(v1, v2){
   var dot = v1.dot(v2)
   var mag = v1.magnitude() * v2.magnitude();
-  return Math.acos(dot/mag);
+  var angle = Math.acos(dot/mag);
+  var cross = v1.cross(v2);
+  if(cross < 0){
+    angle *= -1;
+  }
+  return angle;
 }
-
 
 //Takes in 2 points. The first is the point.
 //The second is the relative point
