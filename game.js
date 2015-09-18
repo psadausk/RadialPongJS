@@ -9,7 +9,7 @@ var stage;
 //velocity represents the current rotation speed of the player
 //Positive represents clockwise, while negative is counter
 
-var velocity = 500;
+var velocity = 200;
 var maxVelocity = 50;
 
 //Debugging tools
@@ -48,7 +48,7 @@ window.onload = function(){
     actualArcLine.graphics.beginFill("blue");
 
 
-    SetPlayer();
+    UpdatePlayerPosition(GetNearestPoint(new Victor(stage.mouseX, stage.mouseY)));
 
 
     createjs.Ticker.addEventListener("tick", HandleTick);
@@ -67,6 +67,7 @@ function HandleTick(event){
 }
 
 function UpdatePlayer(delta){
+  //Artifically cap the delta, so slowing the framerate doesn't make it jump too much
   delta = Math.max(delta, 100)
   var playerPosition = new Victor(player.x, player.y);
   //console.log("Player Start: " + GetVectorRelativeToLocal(playerPosition));
@@ -101,7 +102,11 @@ function UpdatePlayer(delta){
     var totalArcLength = angle * fieldRadius;
 
     //console.log("totalArcLength is " + totalArcLength);
-    var arcLength = Math.min(totalArcLength, velocity);
+    var arcLength = Math.min(Math.abs(totalArcLength), velocity);
+    console.log(totalArcLength);
+    if(totalArcLength < 0){
+      arcLength *= -1;
+    }
     var deltaArcLength = arcLength * delta/1000;
     //console.log(deltaArcLength);
     //Now calculate the angle at that point
@@ -147,34 +152,16 @@ function UpdatePlayer(delta){
     //console.log("new player local ps is (" +pX + ", " + pY + ")");
 
     var newPlayerPos = GetVectorRelativeToGlobal(new Victor(pX, pY));
-
-    //console.log("PlayerPosEndL " + newPlayerPos);
-
-    player.x = newPlayerPos.x;
-    player.y = newPlayerPos.y;
+    UpdatePlayerPosition(newPlayerPos);
 
   }
 
   stage.update();
 }
 
-
-function sleepFor(duration){
-      var now = new Date().getTime();
-      while(new Date().getTime() < now + duration){ /* do nothing */ }
-
-}
-
-function SetPlayer(){
-  var mouseP = new Victor(stage.mouseX, stage.mouseY);
-  var nearestP = GetNearestPoint(mouseP);
-
-  //player.x = nearestP.x;
-  //player.y = nearestP.y;
-  playerVector = GetVectorRelativeToGlobal(new Victor(fieldRadius, 0));
-  console.log(playerVector);
-  player.x = playerVector.x;
-  player.y = playerVector.y
+function UpdatePlayerPosition(p){
+  player.x = p.x;
+  player.y = p.y
 
   //Now do the rotation.
   var angle = Math.atan2(stage.mouseY - player.y, stage.mouseX - player.x);
@@ -183,8 +170,7 @@ function SetPlayer(){
         //angle = 360 - (-angle);
   }
 
-  player.rotation = angle;
-  stage.update();
+  player.rotation = angle
 }
 
 function GetNearestPoint(p){
